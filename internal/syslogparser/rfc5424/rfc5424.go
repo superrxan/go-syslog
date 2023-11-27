@@ -5,11 +5,10 @@ package rfc5424
 
 import (
 	"fmt"
+	"github.com/superrxan/go-syslog/internal/syslogparser"
 	"math"
 	"strconv"
 	"time"
-
-	"gopkg.in/mcuadros/go-syslog.v2/internal/syslogparser"
 )
 
 const (

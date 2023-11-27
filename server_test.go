@@ -3,12 +3,13 @@ package syslog
 import (
 	"fmt"
 	"io"
+	"log/syslog"
 	"net"
 	"testing"
 	"time"
 
+	"github.com/superrxan/go-syslog/format"
 	. "gopkg.in/check.v1"
-	"gopkg.in/mcuadros/go-syslog.v2/format"
 )
 
 func Test(t *testing.T) { TestingT(t) }
@@ -17,7 +18,9 @@ type ServerSuite struct {
 }
 
 var _ = Suite(&ServerSuite{})
-var exampleSyslog = "<31>Dec 26 05:08:46 hostname tag[296]: content"
+
+// var exampleSyslog = "<31>Dec 26 05:08:46 hostname tag[296]: content"
+var exampleSyslog = "<4>2006-01-02T15:04:05Z07:00 4c64955c0c0a neuron[186]: [WARN] [neuron] license_handle.c:110 license persistence/neuron.lic not found"
 var exampleSyslogNoTSTagHost = "<14>INFO     leaving (1) step postscripts"
 var exampleSyslogNoPriority = "Dec 26 05:08:46 hostname test with no priority - see rfc 3164 section 4.3.3"
 var exampleRFC5424Syslog = "<34>1 2003-10-11T22:14:15.003Z mymachine.example.com su - ID47 - 'su root' failed for lonvick on /dev/pts/8"
@@ -25,7 +28,7 @@ var exampleRFC5424Syslog = "<34>1 2003-10-11T22:14:15.003Z mymachine.example.com
 func (s *ServerSuite) TestTailFile(c *C) {
 	handler := new(HandlerMock)
 	server := NewServer()
-	server.SetFormat(RFC3164)
+	server.SetFormat(Automatic)
 	server.SetHandler(handler)
 	server.ListenUDP("0.0.0.0:5141")
 	server.ListenTCP("0.0.0.0:5141")
@@ -36,6 +39,9 @@ func (s *ServerSuite) TestTailFile(c *C) {
 		serverAddr, _ := net.ResolveUDPAddr("udp", "localhost:5141")
 		con, _ := net.DialUDP("udp", nil, serverAddr)
 		con.Write([]byte(exampleSyslog))
+
+		W, _ := syslog.Dial("udp", "localhost:5141", syslog.LOG_INFO, "tag")
+		_ = W.Info("[tag] content")
 		time.Sleep(100 * time.Millisecond)
 
 		server.Kill()

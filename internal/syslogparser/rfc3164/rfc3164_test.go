@@ -2,11 +2,11 @@ package rfc3164
 
 import (
 	"bytes"
+	"go-syslog/internal/syslogparser"
 	"testing"
 	"time"
 
 	. "gopkg.in/check.v1"
-	"gopkg.in/mcuadros/go-syslog.v2/internal/syslogparser"
 )
 
 // Hooks up gocheck into the gotest runner.

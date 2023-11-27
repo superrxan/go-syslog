@@ -2,10 +2,9 @@ package rfc3164
 
 import (
 	"bytes"
+	"github.com/superrxan/go-syslog/internal/syslogparser"
 	"os"
 	"time"
-
-	"gopkg.in/mcuadros/go-syslog.v2/internal/syslogparser"
 )
 
 type Parser struct {

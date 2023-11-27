@@ -2,9 +2,8 @@ package format
 
 import (
 	"bufio"
+	"github.com/superrxan/go-syslog/internal/syslogparser"
 	"time"
-
-	"gopkg.in/mcuadros/go-syslog.v2/internal/syslogparser"
 )
 
 type LogParts map[string]interface{}
