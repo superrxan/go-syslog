@@ -1,6 +1,7 @@
 package rfc3164_simple
 
 import (
+	"bytes"
 	"github.com/superrxan/go-syslog/internal/syslogparser"
 	"strings"
 	"time"
@@ -69,6 +70,11 @@ func (p *Parser) Parse() error {
 	tag, _ := p.parseTag()
 	msg.tag = tag
 
+	//put the tag and pid
+	tagAndPid := p.buff[p.cutCursor:p.cursor]
+	p.sb.Write(tagAndPid)
+
+	p.cutCursor = p.cursor
 	content, _ := p.parseContent()
 	msg.content = content
 
@@ -172,8 +178,15 @@ func (p *Parser) parseContent() (string, error) {
 	if p.cursor > p.l {
 		return p.sb.String(), syslogparser.ErrEOL
 	}
-
 	content := p.buff[p.cutCursor:p.l]
+	contLen := len(content)
+	if bytes.HasPrefix(content, []byte("time=")) {
+		indexAfterTime := bytes.IndexByte(content, ' ')
+		if indexAfterTime != -1 {
+			p.sb.Write(content[indexAfterTime+1 : contLen])
+			return p.sb.String(), syslogparser.ErrEOL
+		}
+	}
 	p.sb.Write(content)
 
 	return p.sb.String(), syslogparser.ErrEOL

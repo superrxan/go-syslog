@@ -48,6 +48,66 @@ func (s *Rfc3164TestSuite) TestParser_Valid(c *C) {
 	c.Assert(obtained, DeepEquals, expected)
 }
 
+func (s *Rfc3164TestSuite) TestParser_ValidTagPid(c *C) {
+	buff := []byte("<34>2018-01-12T22:14:15+00:00 mymachine very.large.syslog.message.tag[23]: 'su root' failed for lonvick on /dev/pts/8")
+
+	p := NewParser(buff)
+	expectedP := &Parser{
+		buff:     buff,
+		cursor:   0,
+		l:        len(buff),
+		location: time.UTC,
+	}
+
+	c.Assert(p, DeepEquals, expectedP)
+
+	err := p.Parse()
+	c.Assert(err, IsNil)
+
+	obtained := p.Dump()
+	expected := syslogparser.LogParts{
+		"timestamp": time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+		"hostname":  "",
+		"tag":       "very.large.syslog.message.tag",
+		"content":   "2018-01-12T22:14:15+00:00 very.large.syslog.message.tag[23]: 'su root' failed for lonvick on /dev/pts/8",
+		"priority":  34,
+		"facility":  4,
+		"severity":  2,
+	}
+
+	c.Assert(obtained, DeepEquals, expected)
+}
+
+func (s *Rfc3164TestSuite) TestParser_TrimTimestamp(c *C) {
+	buff := []byte(`<34>2018-01-12T22:14:15+00:00 mymachine very.large.syslog.message.tag[23]: time="2018-01-12T22:14:15+00:00" level="info" msg='su root' failed for lonvick on /dev/pts/8`)
+
+	p := NewParser(buff)
+	expectedP := &Parser{
+		buff:     buff,
+		cursor:   0,
+		l:        len(buff),
+		location: time.UTC,
+	}
+
+	c.Assert(p, DeepEquals, expectedP)
+
+	err := p.Parse()
+	c.Assert(err, IsNil)
+
+	obtained := p.Dump()
+	expected := syslogparser.LogParts{
+		"timestamp": time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+		"hostname":  "",
+		"tag":       "very.large.syslog.message.tag",
+		"content":   `2018-01-12T22:14:15+00:00 very.large.syslog.message.tag[23]: level="info" msg='su root' failed for lonvick on /dev/pts/8`,
+		"priority":  34,
+		"facility":  4,
+		"severity":  2,
+	}
+
+	c.Assert(obtained, DeepEquals, expected)
+}
+
 func (s *Rfc3164TestSuite) TestParser_ValidNoTag(c *C) {
 	buff := []byte("<34>2018-01-12T22:14:15+00:00 mymachine singleword")
 
